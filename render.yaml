@@ -1,12 +1,24 @@
 services:
   - type: web
-    name: solana-pump-bot
+    name: solana-pump-bot-api
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm run start:api
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_VERSION
         value: 20
       - key: PORT
         value: 10000
+      - key: RPC_URL
+        value: https://api.mainnet-beta.solana.com
+      - key: PRIVATE_KEY
+        value: 153,38,36,184,228,227,172,221,87,6,54,61,66,179,150,178,116,100,53,22,244,229,190,26,191,81,140,236,1,251,138,178,85,41,196,222,167,71,65,225,86,232,92,209,86,200,46,162,186,73,76,91,249,90,198,58,86,213,29,26,203,68,231,142
+      - key: TOKEN_MINT
+        value: So11111111111111111111111111111111111111112
+      - key: PUMP_PROGRAM_ID
+        value: 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P
+      - key: MIN_SOL_AMOUNT
+        value: 0.1
+      - key: SLIPPAGE
+        value: 1.0
     healthCheckPath: /api/health

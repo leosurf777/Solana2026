@@ -7,6 +7,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:api": "node --loader ts-node/esm src/api-server.ts",
+    "start:prod": "node dist/api-server.js",
     "build": "tsc",
     "dev": "ts-node-dev --respawn src/index.ts",
     "dev:api": "ts-node-dev --respawn src/api-server.ts",
