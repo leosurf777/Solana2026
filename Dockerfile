@@ -1,24 +1,27 @@
-# Backend Dockerfile
+# Use Node.js 18 Alpine
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json
 COPY package*.json ./
-COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install
 
-# Copy source code
-COPY src/ ./src/
-COPY dist/ ./dist/
+# Copy server.js
+COPY server.js .
 
-# Create .env from example if it doesn't exist
-COPY .env.example .env
+# Create .env from environment variables
+RUN echo "PORT=${PORT:-10000}" > .env
 
-# Expose port (if backend has HTTP server)
-EXPOSE 3000
+# Expose port
+EXPOSE 10000
 
-# Start the application
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:10000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start the server
 CMD ["npm", "start"]
