@@ -1,9 +1,5 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+const express = require('express');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -12,8 +8,8 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Basic health check
-app.get('/api/health', (req: Request, res: Response) => {
+// Health check
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -22,7 +18,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Bot status
-app.get('/api/bot/status', (req: Request, res: Response) => {
+app.get('/api/bot/status', (req, res) => {
   res.json({
     status: 'operational',
     timestamp: new Date().toISOString(),
@@ -34,7 +30,7 @@ app.get('/api/bot/status', (req: Request, res: Response) => {
 });
 
 // API endpoints info
-app.get('/api/endpoints', (req: Request, res: Response) => {
+app.get('/api/endpoints', (req, res) => {
   res.json({
     available: [
       '/api/health',
@@ -54,8 +50,8 @@ app.get('/api/endpoints', (req: Request, res: Response) => {
   });
 });
 
-// Mock trades endpoint
-app.get('/api/trades', (req: Request, res: Response) => {
+// Mock endpoints for all trading features
+app.get('/api/trades', (req, res) => {
   res.json({
     trades: [],
     total: 0,
@@ -63,8 +59,7 @@ app.get('/api/trades', (req: Request, res: Response) => {
   });
 });
 
-// Mock market data
-app.get('/api/market', (req: Request, res: Response) => {
+app.get('/api/market', (req, res) => {
   res.json({
     tokens: [],
     stats: {
@@ -77,75 +72,75 @@ app.get('/api/market', (req: Request, res: Response) => {
   });
 });
 
-// Mock pump.fun endpoints
-app.get('/api/pumpfun/start', (req: Request, res: Response) => {
+// Pump.fun endpoints
+app.get('/api/pumpfun/start', (req, res) => {
   res.json({ success: true, message: 'Pump.fun scanner started' });
 });
 
-app.get('/api/pumpfun/stop', (req: Request, res: Response) => {
+app.get('/api/pumpfun/stop', (req, res) => {
   res.json({ success: true, message: 'Pump.fun scanner stopped' });
 });
 
-app.get('/api/pumpfun/targets', (req: Request, res: Response) => {
+app.get('/api/pumpfun/targets', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/pumpfun/tokens', (req: Request, res: Response) => {
+app.get('/api/pumpfun/tokens', (req, res) => {
   res.json([]);
 });
 
-// Mock volume trader endpoints
-app.get('/api/volume/start', (req: Request, res: Response) => {
+// Volume trader endpoints
+app.get('/api/volume/start', (req, res) => {
   res.json({ success: true, message: 'Volume trading started' });
 });
 
-app.get('/api/volume/stop', (req: Request, res: Response) => {
+app.get('/api/volume/stop', (req, res) => {
   res.json({ success: true, message: 'Volume trading stopped' });
 });
 
-app.get('/api/volume/data', (req: Request, res: Response) => {
+app.get('/api/volume/data', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/volume/trades', (req: Request, res: Response) => {
+app.get('/api/volume/trades', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/volume/performance', (req: Request, res: Response) => {
+app.get('/api/volume/performance', (req, res) => {
   res.json({});
 });
 
-// Mock sniper bot endpoints
-app.get('/api/sniper/start', (req: Request, res: Response) => {
+// Sniper bot endpoints
+app.get('/api/sniper/start', (req, res) => {
   res.json({ success: true, message: 'Sniper bot started' });
 });
 
-app.get('/api/sniper/stop', (req: Request, res: Response) => {
+app.get('/api/sniper/stop', (req, res) => {
   res.json({ success: true, message: 'Sniper bot stopped' });
 });
 
-app.get('/api/sniper/targets', (req: Request, res: Response) => {
+app.get('/api/sniper/targets', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/sniper/positions', (req: Request, res: Response) => {
+app.get('/api/sniper/positions', (req, res) => {
   res.json([]);
 });
 
-app.get('/api/sniper/config', (req: Request, res: Response) => {
+app.get('/api/sniper/config', (req, res) => {
   res.json({});
 });
 
-app.post('/api/sniper/config', (req: Request, res: Response) => {
+app.post('/api/sniper/config', (req, res) => {
   res.json({ success: true, message: 'Sniper config updated' });
 });
 
-app.get('/api/sniper/performance', (req: Request, res: Response) => {
+app.get('/api/sniper/performance', (req, res) => {
   res.json({});
 });
 
-// Mock multi-wallet endpoints
-app.post('/api/wallets/create', (req: Request, res: Response) => {
+// Multi-wallet endpoints
+app.post('/api/wallets/create', (req, res) => {
   const { count, batchName, prefix } = req.body;
   res.json({
     batchName: batchName || 'default',
@@ -155,7 +150,7 @@ app.post('/api/wallets/create', (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/wallets/batches', (req: Request, res: Response) => {
+app.get('/api/wallets/batches', (req, res) => {
   res.json([]);
 });
 
@@ -165,5 +160,3 @@ app.listen(port, () => {
   console.log(`📊 Health check: http://localhost:${port}/api/health`);
   console.log(`🔗 API endpoints: http://localhost:${port}/api/endpoints`);
 });
-
-export default app;

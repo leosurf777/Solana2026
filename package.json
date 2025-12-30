@@ -2,12 +2,9 @@
   "name": "solanahelper",
   "version": "1.0.0",
   "description": "A comprehensive Solana helper tool for managing and automating Solana transactions",
-  "main": "dist/api-server.js",
-  "type": "module",
+  "main": "server.js",
   "scripts": {
-    "start": "node dist/api-server.js",
-    "build": "tsc",
-    "dev": "ts-node-dev --respawn src/api-server-fixed.ts",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -19,16 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.3",
-    "ts-node": "^10.9.1",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.2"
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 }
