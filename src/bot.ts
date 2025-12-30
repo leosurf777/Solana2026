@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Keypair } from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { config, connection, wallet } from './config';
 import * as anchor from '@coral-xyz/anchor';
 import { telegram } from './services/telegram';
@@ -14,7 +14,7 @@ interface BuyEvent {
 export class SolanaPumpBot {
   private isRunning = false;
   private lastProcessedSlot = 0;
-  private token: Token;
+  // private token: Token; // Removed deprecated Token class
   private tokenDecimals = 9; // Default token decimals, update if different
   private recentBuys: BuyEvent[] = [];
   private readonly MAX_RECENT_BUYS = 100;
@@ -22,12 +22,7 @@ export class SolanaPumpBot {
   private lastBundleTime = 0;
 
   constructor() {
-    this.token = new Token(
-      connection,
-      config.tokenMint,
-      TOKEN_PROGRAM_ID,
-      wallet // payer
-    );
+    // Token class is deprecated, using direct token operations
   }
 
   async start() {
@@ -212,18 +207,20 @@ export class SolanaPumpBot {
 
       // based on pump.fun's program
       
+      const bundleTransaction = new Transaction();
+      
       // Example: Add a transfer instruction (replace with actual swap logic)
-      transaction.add(
+      bundleTransaction.add(
         SystemProgram.transfer({
           fromPubkey: wallet.publicKey,
-          toPubkey: new PublicKey(buyEvent.buyer), // Just an example - don't actually send to the buyer!
+          toPubkey: new PublicKey(event.buyer), // Just an example - don't actually send to the buyer!
           lamports: 1000000 // 0.001 SOL
         })
       );
       
       // Sign and send the transaction
       console.log('🔄 Sending bundle transaction...');
-      const signature = await connection.sendTransaction(transaction, [wallet]);
+      const signature = await connection.sendTransaction(bundleTransaction, [wallet]);
       
       console.log(`✅ Bundle transaction sent: ${signature}`);
       
@@ -234,7 +231,7 @@ export class SolanaPumpBot {
       // Send notification
       await this.sendNotification(
         `✅ Bundle executed!\n` +
-        `💰 Buy: ${buyEvent.amount} SOL\n` +
+        `💰 Buy: ${event.amount} SOL\n` +
         `🔗 Tx: https://solscan.io/tx/${signature}`
       );
       
