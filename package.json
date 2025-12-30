@@ -2,15 +2,12 @@
   "name": "solanahelper",
   "version": "1.0.0",
   "description": "A comprehensive Solana helper tool for managing and automating Solana transactions",
-  "main": "dist/index.js",
+  "main": "dist/api-server.js",
   "type": "module",
   "scripts": {
-    "start": "ts-node src/index.ts",
-    "start:api": "node --loader ts-node/esm src/api-server.ts",
-    "start:prod": "node dist/api-server.js",
+    "start": "node dist/api-server.js",
     "build": "tsc",
-    "dev": "ts-node-dev --respawn src/index.ts",
-    "dev:api": "ts-node-dev --respawn src/api-server.ts",
+    "dev": "ts-node-dev --respawn src/api-server-fixed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -22,23 +19,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@coral-xyz/anchor": "^0.29.0",
-    "@solana/spl-token": "^0.4.14",
-    "@solana/web3.js": "^1.98.4",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "axios": "^1.13.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^5.2.1",
-    "node-fetch": "^3.3.2",
-    "node-telegram-bot-api": "^0.67.0",
-    "ws": "^8.18.3"
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
-    "@types/node-telegram-bot-api": "^0.64.13",
-    "@types/ws": "^8.5.10",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.2"
