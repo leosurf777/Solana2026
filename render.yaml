@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: solana-pump-bot
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:api
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health

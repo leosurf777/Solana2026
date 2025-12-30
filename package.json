@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "start:api": "node --loader ts-node/esm src/real-api-server.ts",
+    "start:api": "node --loader ts-node/esm src/api-server.ts",
     "build": "tsc",
     "dev": "ts-node-dev --respawn src/index.ts",
     "dev:api": "ts-node-dev --respawn src/api-server.ts",

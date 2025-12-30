@@ -60,7 +60,7 @@ export interface BotStatus {
 // API Functions
 export const apiClient = {
   // Health check
-  async healthCheck() {
+  async getHealth() {
     const response = await api.get('/api/health');
     return response.data;
   },
@@ -89,6 +89,104 @@ export const apiClient = {
   // Market data
   async getMarketData(): Promise<MarketData> {
     const response = await api.get('/api/market');
+    return response.data;
+  },
+
+  // Pump.fun endpoints
+  async startPumpFunScanner() {
+    const response = await api.get('/api/pumpfun/start');
+    return response.data;
+  },
+
+  async stopPumpFunScanner() {
+    const response = await api.get('/api/pumpfun/stop');
+    return response.data;
+  },
+
+  async getPumpFunTargets() {
+    const response = await api.get('/api/pumpfun/targets');
+    return response.data;
+  },
+
+  async getPumpFunTokens() {
+    const response = await api.get('/api/pumpfun/tokens');
+    return response.data;
+  },
+
+  // Volume trader endpoints
+  async startVolumeTrader() {
+    const response = await api.get('/api/volume/start');
+    return response.data;
+  },
+
+  async stopVolumeTrader() {
+    const response = await api.get('/api/volume/stop');
+    return response.data;
+  },
+
+  async getVolumeData() {
+    const response = await api.get('/api/volume/data');
+    return response.data;
+  },
+
+  async getVolumeTrades() {
+    const response = await api.get('/api/volume/trades');
+    return response.data;
+  },
+
+  async getVolumePerformance() {
+    const response = await api.get('/api/volume/performance');
+    return response.data;
+  },
+
+  // Sniper bot endpoints
+  async startSniperBot() {
+    const response = await api.get('/api/sniper/start');
+    return response.data;
+  },
+
+  async stopSniperBot() {
+    const response = await api.get('/api/sniper/stop');
+    return response.data;
+  },
+
+  async getSniperTargets() {
+    const response = await api.get('/api/sniper/targets');
+    return response.data;
+  },
+
+  async getSniperPositions() {
+    const response = await api.get('/api/sniper/positions');
+    return response.data;
+  },
+
+  async getSniperConfig() {
+    const response = await api.get('/api/sniper/config');
+    return response.data;
+  },
+
+  async updateSniperConfig(config: any) {
+    const response = await api.post('/api/sniper/config', config);
+    return response.data;
+  },
+
+  async getSniperPerformance() {
+    const response = await api.get('/api/sniper/performance');
+    return response.data;
+  },
+
+  // Multi-wallet endpoints
+  async createWalletBatch(count: number, batchName: string, prefix: string) {
+    const response = await api.post('/api/wallets/create', {
+      count,
+      batchName,
+      prefix,
+    });
+    return response.data;
+  },
+
+  async getWalletBatches() {
+    const response = await api.get('/api/wallets/batches');
     return response.data;
   },
 };

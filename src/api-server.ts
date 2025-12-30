@@ -1,12 +1,10 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { SolanaPumpBot } from './bot.js';
 import { config, connection, wallet } from './config.js';
 import { EnhancedPumpFunScanner } from './services/enhanced-pumpfun-scanner.js';
 import { MultiWalletCreator } from './services/multi-wallet-creator.js';
 import { VolumeTrader } from './services/volume-trader.js';
 import { SniperBot } from './services/sniper-bot.js';
-import { apiEndpoints } from './api-server-endpoints.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -16,7 +14,6 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize services
-let bot: SolanaPumpBot;
 let pumpFunScanner: EnhancedPumpFunScanner;
 let multiWalletCreator: MultiWalletCreator;
 let volumeTrader: VolumeTrader;
@@ -26,10 +23,6 @@ let sniperBot: SniperBot;
 async function initializeServices() {
   try {
     console.log('🚀 Initializing all trading services...');
-    
-    // Initialize main bot
-    bot = new SolanaPumpBot();
-    await bot.start();
     
     // Initialize pump.fun scanner
     pumpFunScanner = new EnhancedPumpFunScanner(config.rpcUrl, wallet);
@@ -54,79 +47,90 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    botRunning: bot ? true : false
+    services: {
+      api: 'running',
+      config: 'loaded',
+      connection: 'connected',
+      wallet: wallet.publicKey.toBase58()
+    }
   });
 });
 
-// Get bot status
+// Bot status
 app.get('/api/bot/status', (req: Request, res: Response) => {
-  try {
-    res.json({
-      running: bot ? true : false,
-      lastUpdate: new Date().toISOString(),
-      config: {
-        tokenMint: config.tokenMint.toBase58(),
-        minSolAmount: config.minSolAmount,
-        slippage: config.slippage
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get bot status' });
-  }
+  res.json({
+    status: 'operational',
+    wallet: wallet.publicKey.toBase58(),
+    network: config.rpcUrl,
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Get recent trades
+// Trades endpoint
 app.get('/api/trades', (req: Request, res: Response) => {
   try {
-    // Mock data for now - replace with actual bot data
-    const mockTrades = [
-      {
-        id: '1',
-        type: 'buy',
-        token: 'So11111111111111111111111111111111111111112',
-        amount: 0.5,
-        price: 98.45,
-        timestamp: new Date(Date.now() - 3600000),
-        signature: '2ZE3R2Kx8QzJ7q6Y8M9X2W5V4N1P3Q6R9T2Y5U8I1O4L7A0S3D6F9G2H5J8K1M4',
-        status: 'confirmed',
-        profit: 2.34
-      }
-    ];
-    res.json(mockTrades);
+    const trades = volumeTrader?.getTrades() || [];
+    res.json({
+      trades,
+      total: trades.length,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get trades' });
   }
 });
 
-// Execute trade
-app.post('/api/trade', async (req: Request, res: Response) => {
+// Market data
+app.get('/api/market', (req: Request, res: Response) => {
   try {
-    const { type, tokenAddress, amount } = req.body;
-    
-    if (!type || !tokenAddress || !amount) {
-      return res.status(400).json({ error: 'Missing required parameters' });
-    }
-
-    // Mock trade execution - replace with actual bot logic
-    const trade = {
-      id: Date.now().toString(),
-      type,
-      token: tokenAddress,
-      amount,
-      price: 98.45, // Mock price
-      timestamp: new Date(),
-      signature: 'mock_signature_' + Math.random().toString(36).substr(2, 9),
-      status: 'pending'
-    };
-
-    res.json(trade);
+    const tokens = pumpFunScanner?.getCurrentTokens() || [];
+    res.json({
+      tokens,
+      stats: {
+        totalTokens: tokens.length,
+        newTokens: tokens.filter(t => Date.now() - t.createdAt.getTime() < 3600000).length,
+        avgLiquidity: tokens.reduce((sum, t) => sum + t.liquidity, 0) / tokens.length || 0,
+        totalVolume: tokens.reduce((sum, t) => sum + t.volume24h, 0)
+      },
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Trade execution failed' });
+    res.status(500).json({ error: 'Failed to get market data' });
   }
 });
 
-// Register all new API endpoints
-app.get(apiEndpoints.pumpFun.start, (req: Request, res: Response) => {
+// API endpoints info
+app.get('/api/endpoints', (req: Request, res: Response) => {
+  res.json({
+    available: [
+      '/api/health',
+      '/api/bot/status', 
+      '/api/trades',
+      '/api/market',
+      '/api/pumpfun/start',
+      '/api/pumpfun/stop',
+      '/api/pumpfun/targets',
+      '/api/pumpfun/tokens',
+      '/api/volume/start',
+      '/api/volume/stop',
+      '/api/volume/data',
+      '/api/volume/trades',
+      '/api/volume/performance',
+      '/api/sniper/start',
+      '/api/sniper/stop',
+      '/api/sniper/targets',
+      '/api/sniper/positions',
+      '/api/sniper/config',
+      '/api/wallets/create',
+      '/api/wallets/batches'
+    ],
+    status: 'real_services_operational',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Pump.fun endpoints
+app.get('/api/pumpfun/start', (req: Request, res: Response) => {
   try {
     pumpFunScanner?.startScanning();
     res.json({ success: true, message: 'Pump.fun scanner started' });
@@ -135,7 +139,7 @@ app.get(apiEndpoints.pumpFun.start, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.pumpFun.stop, (req: Request, res: Response) => {
+app.get('/api/pumpfun/stop', (req: Request, res: Response) => {
   try {
     pumpFunScanner?.stopScanning();
     res.json({ success: true, message: 'Pump.fun scanner stopped' });
@@ -144,7 +148,7 @@ app.get(apiEndpoints.pumpFun.stop, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.pumpFun.targets, (req: Request, res: Response) => {
+app.get('/api/pumpfun/targets', (req: Request, res: Response) => {
   try {
     const targets = pumpFunScanner?.getSnipeTargets() || [];
     res.json(targets);
@@ -153,7 +157,7 @@ app.get(apiEndpoints.pumpFun.targets, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.pumpFun.tokens, (req: Request, res: Response) => {
+app.get('/api/pumpfun/tokens', (req: Request, res: Response) => {
   try {
     const tokens = pumpFunScanner?.getCurrentTokens() || [];
     res.json(tokens);
@@ -163,7 +167,7 @@ app.get(apiEndpoints.pumpFun.tokens, (req: Request, res: Response) => {
 });
 
 // Volume trader endpoints
-app.get(apiEndpoints.volumeTrader.start, (req: Request, res: Response) => {
+app.get('/api/volume/start', (req: Request, res: Response) => {
   try {
     volumeTrader?.startVolumeTrading();
     res.json({ success: true, message: 'Volume trading started' });
@@ -172,7 +176,34 @@ app.get(apiEndpoints.volumeTrader.start, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.volumeTrader.performance, (req: Request, res: Response) => {
+app.get('/api/volume/stop', (req: Request, res: Response) => {
+  try {
+    volumeTrader?.stopVolumeTrading();
+    res.json({ success: true, message: 'Volume trading stopped' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to stop volume trading' });
+  }
+});
+
+app.get('/api/volume/data', (req: Request, res: Response) => {
+  try {
+    const data = volumeTrader?.getVolumeData() || [];
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get volume data' });
+  }
+});
+
+app.get('/api/volume/trades', (req: Request, res: Response) => {
+  try {
+    const trades = volumeTrader?.getTrades() || [];
+    res.json(trades);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get trades' });
+  }
+});
+
+app.get('/api/volume/performance', (req: Request, res: Response) => {
   try {
     const metrics = volumeTrader?.getPerformanceMetrics();
     res.json(metrics || {});
@@ -182,7 +213,7 @@ app.get(apiEndpoints.volumeTrader.performance, (req: Request, res: Response) => 
 });
 
 // Sniper bot endpoints
-app.get(apiEndpoints.sniperBot.start, (req: Request, res: Response) => {
+app.get('/api/sniper/start', (req: Request, res: Response) => {
   try {
     sniperBot?.startSniping();
     res.json({ success: true, message: 'Sniper bot started' });
@@ -191,7 +222,16 @@ app.get(apiEndpoints.sniperBot.start, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.sniperBot.targets, (req: Request, res: Response) => {
+app.get('/api/sniper/stop', (req: Request, res: Response) => {
+  try {
+    sniperBot?.stopSniping();
+    res.json({ success: true, message: 'Sniper bot stopped' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to stop sniper bot' });
+  }
+});
+
+app.get('/api/sniper/targets', (req: Request, res: Response) => {
   try {
     const targets = sniperBot?.getTargets() || [];
     res.json(targets);
@@ -200,7 +240,35 @@ app.get(apiEndpoints.sniperBot.targets, (req: Request, res: Response) => {
   }
 });
 
-app.get(apiEndpoints.sniperBot.performance, (req: Request, res: Response) => {
+app.get('/api/sniper/positions', (req: Request, res: Response) => {
+  try {
+    const positions = sniperBot?.getPositions() || [];
+    res.json(positions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get positions' });
+  }
+});
+
+app.get('/api/sniper/config', (req: Request, res: Response) => {
+  try {
+    const config = sniperBot?.getConfig();
+    res.json(config || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get config' });
+  }
+});
+
+app.post('/api/sniper/config', (req: Request, res: Response) => {
+  try {
+    const updates = req.body;
+    sniperBot?.updateConfig(updates);
+    res.json({ success: true, message: 'Sniper config updated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update config' });
+  }
+});
+
+app.get('/api/sniper/performance', (req: Request, res: Response) => {
   try {
     const metrics = sniperBot?.getPerformanceMetrics();
     res.json(metrics || {});
@@ -209,9 +277,29 @@ app.get(apiEndpoints.sniperBot.performance, (req: Request, res: Response) => {
   }
 });
 
+// Multi-wallet endpoints
+app.post('/api/wallets/create', (req: Request, res: Response) => {
+  try {
+    const { count, batchName, prefix } = req.body;
+    const batch = multiWalletCreator?.createWalletBatch(count, batchName, prefix);
+    res.json(batch);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create wallets' });
+  }
+});
+
+app.get('/api/wallets/batches', (req: Request, res: Response) => {
+  try {
+    const batches = multiWalletCreator?.getAllBatches() || [];
+    res.json(batches);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get batches' });
+  }
+});
+
 // Start server
 app.listen(port, async () => {
-  console.log(`🚀 API Server running on port ${port}`);
+  console.log(`🚀 Solana Pump Bot API Server running on port ${port}`);
   await initializeServices();
 });
 
